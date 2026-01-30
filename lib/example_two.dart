@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:api_integration/ExampleThree.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -12,6 +13,7 @@ class ExampleTwo extends StatefulWidget {
 }
 
 class _ExampleTwoState extends State<ExampleTwo> {
+
   Future<List<Photos>> getPhotos() async {
     List<Photos> photoList = [];
 
@@ -23,7 +25,13 @@ class _ExampleTwoState extends State<ExampleTwo> {
       final data = jsonDecode(response.body);
 
       for (Map<String, dynamic> i in data) {
-        photoList.add(Photos(title: i['title'], url: i['url'], id: i['id']));
+        photoList.add(
+          Photos(
+            id: i['id'],
+            title: i['title'],
+            url: i['url'],
+          ),
+        );
       }
     }
     return photoList;
@@ -32,35 +40,70 @@ class _ExampleTwoState extends State<ExampleTwo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Photos API'), centerTitle: true),
-      body: FutureBuilder<List<Photos>>(
-        future: getPhotos(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      appBar: AppBar(
+        title: const Text('Photos API'),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
 
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error loading photos'));
-          }
+          // 🔘 Example Three Button
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Examplethree(),
+                  ),
+                );
+              },
+              child: const Text('Example Three'),
+            ),
+          ),
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No photos found'));
-          }
+          // 📸 Photos List
+          Expanded(
+            child: FutureBuilder<List<Photos>>(
+              future: getPhotos(),
+              builder: (context, snapshot) {
 
-          return ListView.builder(
-            itemCount: snapshot.data!.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage(snapshot.data![index].url),
-                ),
-                subtitle: Text(snapshot.data![index].title.toString()),
-                title: Text("Notes Id: "+snapshot.data![index].id.toString()),
-              );
-            },
-          );
-        },
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Error loading photos'));
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No photos found'));
+                }
+
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage:
+                        NetworkImage(snapshot.data![index].url),
+                      ),
+                      title: Text(
+                        'Notes Id: ${snapshot.data![index].id}',
+                      ),
+                      subtitle: Text(
+                        snapshot.data![index].title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
